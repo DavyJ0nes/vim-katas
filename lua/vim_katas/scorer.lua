@@ -15,22 +15,25 @@ function M.rate(state_snap)
   local elapsed  = os.clock() - state_snap.start_time
   local cfg      = config.get()
 
-  -- Keystroke efficiency ratio (capped at 1.0)
-  local ratio = optimal / math.max(keycount, 1)
-  ratio = math.min(ratio, 1.0)
-
   -- Base star rating (0-3)
   local stars
   if not state_snap.passed then
     stars = 0
-  elseif ratio >= 1.00 then
-    stars = 3
-  elseif ratio >= 0.75 then
-    stars = 2
-  elseif ratio >= 0.50 then
-    stars = 1
-  else
+  elseif keycount <= 0 then
+    -- Keystrokes were not tracked (shouldn't happen, but don't reward it)
     stars = 0
+  else
+    -- Efficiency ratio: how close to optimal (capped at 1.0 so over-efficient = 3★)
+    local ratio = math.min(optimal / keycount, 1.0)
+    if ratio >= 1.00 then
+      stars = 3
+    elseif ratio >= 0.75 then
+      stars = 2
+    elseif ratio >= 0.50 then
+      stars = 1
+    else
+      stars = 0
+    end
   end
 
   -- Hint penalty: cap at 2 stars

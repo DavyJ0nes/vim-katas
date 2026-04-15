@@ -1,5 +1,7 @@
 # vim-katas
 
+> **Note:** This plugin was written with the assistance of AI (Claude) and reviewed by the author.
+
 A Neovim plugin for deliberate Vim practice. Work through kata exercises that
 test specific motions and editing techniques, with keystroke counting, time
 tracking, and star ratings.

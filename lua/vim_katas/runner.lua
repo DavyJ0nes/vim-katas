@@ -13,6 +13,30 @@ local M = {}
 -- Internal helpers
 -- ─────────────────────────────────────────────
 
+-- Count logical keypresses in a Vim key binding string.
+-- Each <...> token (e.g. <leader>, <C-k>) counts as 1 keypress.
+local function count_binding_keys(binding)
+  if not binding or binding == "" then return 0 end
+  local count = 0
+  local i = 1
+  while i <= #binding do
+    if binding:sub(i, i) == "<" then
+      local close = binding:find(">", i + 1, true)
+      if close then
+        count = count + 1
+        i = close + 1
+      else
+        count = count + 1
+        i = i + 1
+      end
+    else
+      count = count + 1
+      i = i + 1
+    end
+  end
+  return count
+end
+
 local function stop_timer()
   local t = state.data.timer
   if t then
@@ -194,10 +218,14 @@ function M.submit()
     msg    = result and result.message or ""
   end
 
+  -- Strip the submit keybinding's own keypresses from the count
+  local submit_overhead = count_binding_keys(config.get().keymaps.submit)
+  local adjusted_keycount = math.max(0, state.data.keycount - submit_overhead)
+
   -- Score the attempt
   local snap = {
     kata       = kata,
-    keycount   = state.data.keycount,
+    keycount   = adjusted_keycount,
     start_time = state.data.start_time,
     hint_shown = state.data.hint_shown,
     passed     = passed,

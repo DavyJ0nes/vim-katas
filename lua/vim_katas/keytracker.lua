@@ -12,18 +12,19 @@ function M.attach()
   local ns = vim.api.nvim_create_namespace(NS_NAME)
   state.data.on_key_ns = ns
 
-  vim.on_key(function(key, typed)
+  -- Note: use only the first argument (key). The second argument (typed) is
+  -- nil in many Neovim versions and must not be relied upon.
+  vim.on_key(function(key)
     if state.data.phase ~= "ACTIVE" then return end
     -- Only count keys pressed in the practice buffer
     local cur_buf = vim.api.nvim_get_current_buf()
     if cur_buf ~= state.data.buf then return end
-    -- Skip empty strings (can happen on some events)
-    if not typed or typed == "" then return end
-    -- Skip pure mouse events (start with \x80 in Neovim special encoding)
-    if typed:byte(1) == 0x80 then
-      -- Allow <C-...> and other specials but skip mouse buttons
-      local lower = typed:lower()
-      if lower:find("mouse") or lower:find("scroll") or lower:find("drag") then
+    -- Skip empty / nil
+    if not key or key == "" then return end
+    -- Skip mouse events: Neovim encodes special keys with a 0x80 prefix byte
+    if key:byte(1) == 0x80 then
+      local lower = key:lower()
+      if lower:find("mouse") or lower:find("click") or lower:find("scroll") or lower:find("drag") then
         return
       end
     end
